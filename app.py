@@ -1,5 +1,4 @@
 import streamlit as st
-from transformers import pipeline
 
 #########################
 # Streamlit App Configuration
@@ -8,31 +7,37 @@ from transformers import pipeline
 st.set_page_config(page_title="👨‍🏫 AI Teaching Agent Team")
 
 #########################
-# Model Setup
+# Response Generator
 #########################
 
-@st.cache_resource
-def load_model():
-    try:
-        return pipeline('text-generation', model='distilgpt2')
-    except Exception as e:
-        st.error(f"Error loading model: {str(e)}")
-        return None
-
-def generate_response(prompt, agent_type):
-    """Generate responses using the model"""
-    try:
-        model = load_model()
-        if model is None:
-            return f"Sample response for {agent_type} about {prompt} (Model loading failed)"
-            
-        response = model(f"{agent_type} explanation about {prompt}", 
-                        max_length=100, 
-                        num_return_sequences=1)[0]['generated_text']
-        return response
-    except Exception as e:
-        st.error(f"Error generating response: {str(e)}")
-        return f"Could not generate response for {prompt}"
+def generate_response(topic, agent_type):
+    """Generate sample responses based on agent type"""
+    responses = {
+        "Professor": f"""Here's a knowledge base about {topic}:
+        1. Basic concepts and fundamentals
+        2. Key principles and theories
+        3. Historical development
+        4. Modern applications""",
+        
+        "Academic Advisor": f"""Learning path for {topic}:
+        1. Week 1-2: Fundamentals
+        2. Week 3-4: Core Concepts
+        3. Week 5-6: Advanced Topics
+        4. Week 7-8: Practical Applications""",
+        
+        "Research Librarian": f"""Resources for learning {topic}:
+        1. Online courses and tutorials
+        2. Recommended textbooks
+        3. Video lectures
+        4. Practice exercises""",
+        
+        "Teaching Assistant": f"""Practice exercises for {topic}:
+        1. Beginner level tasks
+        2. Intermediate challenges
+        3. Advanced problems
+        4. Real-world projects"""
+    }
+    return responses.get(agent_type, "Invalid agent type")
 
 #########################
 # Streamlit UI Setup
