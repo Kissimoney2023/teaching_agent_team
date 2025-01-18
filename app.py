@@ -1,4 +1,5 @@
 import streamlit as st
+from transformers import pipeline
 
 #########################
 # Streamlit App Configuration
@@ -7,20 +8,31 @@ import streamlit as st
 st.set_page_config(page_title="👨‍🏫 AI Teaching Agent Team")
 
 #########################
-# Simple Response Generator
+# Model Setup
 #########################
 
+@st.cache_resource
+def load_model():
+    try:
+        return pipeline('text-generation', model='distilgpt2')
+    except Exception as e:
+        st.error(f"Error loading model: {str(e)}")
+        return None
+
 def generate_response(prompt, agent_type):
-    """Simple function to generate responses based on agent type"""
-    if agent_type == "professor":
-        return f"Here's a comprehensive knowledge base about {prompt}..."
-    elif agent_type == "advisor":
-        return f"Here's a learning roadmap for {prompt}..."
-    elif agent_type == "librarian":
-        return f"Here are some learning resources for {prompt}..."
-    elif agent_type == "assistant":
-        return f"Here are some practice exercises for {prompt}..."
-    return "Please provide a topic to learn about."
+    """Generate responses using the model"""
+    try:
+        model = load_model()
+        if model is None:
+            return f"Sample response for {agent_type} about {prompt} (Model loading failed)"
+            
+        response = model(f"{agent_type} explanation about {prompt}", 
+                        max_length=100, 
+                        num_return_sequences=1)[0]['generated_text']
+        return response
+    except Exception as e:
+        st.error(f"Error generating response: {str(e)}")
+        return f"Could not generate response for {prompt}"
 
 #########################
 # Streamlit UI Setup
@@ -41,21 +53,21 @@ if st.button("Start"):
         st.error("Please enter a topic first!")
     else:
         with st.spinner("Generating Knowledge Base..."):
-            professor_response = generate_response(topic, "professor")
+            professor_response = generate_response(topic, "Professor")
             st.subheader("Professor's Knowledge Base")
             st.write(professor_response)
         
         with st.spinner("Creating Learning Path..."):
-            advisor_response = generate_response(topic, "advisor")
+            advisor_response = generate_response(topic, "Academic Advisor")
             st.subheader("Academic Advisor's Learning Path")
             st.write(advisor_response)
         
         with st.spinner("Finding Resources..."):
-            librarian_response = generate_response(topic, "librarian")
+            librarian_response = generate_response(topic, "Research Librarian")
             st.subheader("Research Librarian's Resources")
             st.write(librarian_response)
         
         with st.spinner("Creating Exercises..."):
-            ta_response = generate_response(topic, "assistant")
+            ta_response = generate_response(topic, "Teaching Assistant")
             st.subheader("Teaching Assistant's Exercises")
             st.write(ta_response)
